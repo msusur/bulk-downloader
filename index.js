@@ -49,7 +49,7 @@ function getExtensionFromMimeType(mimeType) {
 }
 
 // Function to download a file or create error file
-async function downloadFile(url, outputPath, id, timeout = 30000) {
+async function downloadFile(url, outputPath, id, retryCount = 0, maxRetries = 5, timeout = 30000) {
   try {
     const response = await axios({
       method: 'GET',
@@ -75,10 +75,10 @@ async function downloadFile(url, outputPath, id, timeout = 30000) {
   } catch (error) {
     if (error.response && (error.response.status === 404 || error.response.status === 500)) {
       fs.writeFileSync(`${outputPath}/${id}:${error.response.status}`, '');
-    } else if (error.code === 'ECONNABORTED' || error.code === 'ECONNRESET') {
+    } else if ((error.code === 'ECONNABORTED' || error.code === 'ECONNRESET') && retryCount < maxRetries) {
       // Handle timeout or ECONNRESET
-      console.error(`Request timed out or connection reset for ${url}: Retrying...`);
-      return downloadFile(url, outputPath, id, timeout); // Retry the same request
+      console.error(`\nRetry ${retryCount + 1}/${maxRetries} for ${url} due to ${error.code}`);
+      return downloadFile(url, outputPath, id, retryCount + 1, maxRetries, timeout);
     } else {
       console.error(`\nError downloading ${id}: ${error}`);
     }
