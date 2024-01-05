@@ -122,7 +122,7 @@ async function main() {
   console.log(`\n Starting from ${currentIndex}`);
 
   const progressBar = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic);
-  progressBar.start(urls.length, 0);
+  progressBar.start(urls.length, currentIndex);
 
   while (currentIndex < urls.length) {
     const chunk = urls.slice(currentIndex, currentIndex + chunkSize);
